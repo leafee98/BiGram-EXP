@@ -140,27 +140,41 @@ public:
         return result;
     }
 
-    double calc_possibility(const std::vector<unsigned> & v, bool debug = false) {
+    double calc_possibility(const std::vector<unsigned> & v, bool smooth = false, bool debug = false) {
         double result = 1.0;
+        unsigned pre_x, pre_sum;
+
+        std::function<void(unsigned, unsigned)> load_value =
+                [&pre_x, &pre_sum, this, smooth](unsigned pre, unsigned x)
+        {
+            pre_x = this->bi_matrix[pre][x];
+            pre_sum = this->bi_matrix[pre][0];
+            if (smooth) {
+                pre_x += 1;
+                pre_sum += this->num_to_word.size() - 3;    // except the #, #BEGIN and #END
+            }
+        };
 
         unsigned pre = 1;           // the #BEGIN
         for (unsigned x : v) {
-            result *= double(this->bi_matrix[pre][x]) / this->bi_matrix[pre][0];
+            load_value(pre, x);
+            result *= double(pre_x) / pre_sum;
 
             if (debug) {
                 std::cout << "DEBUG: " << "pre-x: " << pre << "-" << x
                         << "(" << this->num_to_word[pre] << ' ' << this->num_to_word[x] << ")"
-                        << "; P(x|pre): " << this->bi_matrix[pre][x] << "/" << this->bi_matrix[pre][0] << std::endl;
+                        << "; P(x|pre): " << pre_x << "/" << pre_sum << std::endl;
             }
             pre = x;
         }
 
         unsigned x = 2;             // the #END
-        result *= double(this->bi_matrix[pre][x]) / this->bi_matrix[pre][0];
+        load_value(pre, x);
+        result *= double(pre_x) / pre_sum;
         if (debug) {
             std::cout << "DEBUG: " << "pre-x: " << pre << "-" << x
                     << "(" << this->num_to_word[pre] << ' ' << this->num_to_word[x] << ")"
-                    << "; P(x|pre): " << this->bi_matrix[pre][x] << "/" << this->bi_matrix[pre][0] << std::endl;
+                    << "; P(x|pre): " << pre_x << "/" << pre_sum << std::endl;
         }
 
         return result;

@@ -4,9 +4,19 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 #include "utils.hpp"
 
 bool DEBUG = false;
+
+struct participle_item {
+    std::string str;
+    double possibility;
+
+    bool operator<(const participle_item & p) {
+        return this->possibility < p.possibility;
+    }
+};
 
 int main(int argc, char ** argv) {
     if (argc != 2) {
@@ -30,6 +40,8 @@ int main(int argc, char ** argv) {
     std::cout.flush();
     while (std::getline(std::cin, s)) {
         std::vector<std::vector<unsigned>> sequences = bt.get_possible_sequences(s);
+        std::vector<participle_item> participle_result;
+        participle_result.reserve(sequences.size());
 
         for (const std::vector<unsigned> & seq : sequences) {
             if (DEBUG) {
@@ -43,11 +55,18 @@ int main(int argc, char ** argv) {
                 std::cout << std::endl;
             }
 
-            double possibility = bt.calc_possibility(seq, DEBUG);
+            double possibility = bt.calc_possibility(seq, true, DEBUG);
             std::string formated_str = bt.sequence_to_string(seq);
 
-            std::cout << formated_str << ':' << possibility << std::endl;
+            participle_result.emplace_back(participle_item{formated_str, possibility});
         }
+
+        std::sort(participle_result.begin(), participle_result.end());
+
+        for (size_t i = 0; i < participle_result.size(); i++) {
+            std::cout << participle_result[i].possibility << '\t' << participle_result[i].str << std::endl;
+        }
+
         std::cout << "> ";
         std::cout.flush();
     }
