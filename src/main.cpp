@@ -44,8 +44,11 @@ int main(int argc, char ** argv) {
         participle_result.reserve(sequences.size());
 
         for (const std::vector<unsigned> & seq : sequences) {
+            std::string formated_str = bt.sequence_to_string(seq);
+
             if (DEBUG) {
                 std::cout << "================================" << std::endl;
+                std::cout << "DEBUG: participle is " << formated_str << std::endl;
                 std::cout << "DEBUG: sequence is ";
                 for (size_t i = 0; i < seq.size(); i++) {
                     if (i != 0)
@@ -56,7 +59,6 @@ int main(int argc, char ** argv) {
             }
 
             double possibility = bt.calc_possibility(seq, true, DEBUG);
-            std::string formated_str = bt.sequence_to_string(seq);
 
             participle_result.emplace_back(participle_item{formated_str, possibility});
         }
